@@ -1,0 +1,82 @@
+\hypertarget{unionCommand}{}\section{Command Union Reference}
+\label{unionCommand}\index{Command@{Command}}
+
+
+Make all command types the same size and interchangeable.  
+
+
+
+
+{\ttfamily \#include $<$command.\+h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structSimpleCommand}{Simple\+Command} \hyperlink{unionCommand_a269da4d9b16689de14a0ec83636b59e8}{simple}
+\item 
+\hyperlink{structGenericCommand}{Generic\+Command} \hyperlink{unionCommand_a22a7dad0e3935c261a1643c8c5ea46aa}{generic}
+\item 
+\hyperlink{command_8h_a8dc22d719c880c1ffcd9bc2dc5773633}{Echo\+Command} \hyperlink{unionCommand_a74de4769cc35dac9a3f7dfd24cb87ad7}{echo}
+\item 
+\hyperlink{structExportCommand}{Export\+Command} \hyperlink{unionCommand_a57e7a8eb0763aa7105d3bc6a52e59da3}{export}
+\item 
+\hyperlink{structCDCommand}{C\+D\+Command} \hyperlink{unionCommand_a488c8f6e6ce10f7c9126f37c5f37776d}{cd}
+\item 
+\hyperlink{structKillCommand}{Kill\+Command} \hyperlink{unionCommand_a19c5261961f2f9a7fcbf9f5379d3f98a}{kill}
+\item 
+\hyperlink{command_8h_a0c0e44e3e2b07b1e9b48023205cb4ca2}{P\+W\+D\+Command} \hyperlink{unionCommand_a34fc21bb2a7fee2df4d3674b9d8166ff}{pwd}
+\item 
+\hyperlink{command_8h_a027de4ed5fe4b0313c6c8ee0c2c1806b}{Jobs\+Command} \hyperlink{unionCommand_abeb4905f11baf90a800fe211dd5ecdc9}{jobs}
+\item 
+\hyperlink{command_8h_a354cb87bc40859e5595de56b675732bc}{Exit\+Command} \hyperlink{unionCommand_ab516bde009e6b06c4b342d7f5bf35ece}{exit}
+\item 
+\hyperlink{command_8h_ae5bf5cf7a34428c221f28179034dd125}{E\+O\+C\+Command} \hyperlink{unionCommand_a062a1645e04deb34460595c902a49c44}{eoc}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Make all command types the same size and interchangeable. 
+
+This is useful for arrays or making a common entry point for all command types. The exact type information can be recovered later with the {\itshape \hyperlink{command_8c_a1708aa65874060aa7ef99bf9e1671f5c}{get\+\_\+command\+\_\+type()}} function.
+
+\begin{DoxySeeAlso}{See also}
+\hyperlink{command_8h_a1708aa65874060aa7ef99bf9e1671f5c}{get\+\_\+command\+\_\+type}, \hyperlink{structSimpleCommand}{Simple\+Command}, \hyperlink{structGenericCommand}{Generic\+Command}, \hyperlink{command_8h_a8dc22d719c880c1ffcd9bc2dc5773633}{Echo\+Command}, \hyperlink{structExportCommand}{Export\+Command}, \hyperlink{structCDCommand}{C\+D\+Command}, \hyperlink{structKillCommand}{Kill\+Command}, \hyperlink{command_8h_a0c0e44e3e2b07b1e9b48023205cb4ca2}{P\+W\+D\+Command}, \hyperlink{command_8h_a027de4ed5fe4b0313c6c8ee0c2c1806b}{Jobs\+Command}, \hyperlink{command_8h_a354cb87bc40859e5595de56b675732bc}{Exit\+Command}, \hyperlink{command_8h_ae5bf5cf7a34428c221f28179034dd125}{E\+O\+C\+Command} 
+\end{DoxySeeAlso}
+
+
+\subsection{Member Data Documentation}
+\index{Command@{Command}!cd@{cd}}
+\index{cd@{cd}!Command@{Command}}
+\subsubsection[{\texorpdfstring{cd}{cd}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\+D\+Command} Command\+::cd}\hypertarget{unionCommand_a488c8f6e6ce10f7c9126f37c5f37776d}{}\label{unionCommand_a488c8f6e6ce10f7c9126f37c5f37776d}
+Read structure as a {\itshape \hyperlink{structCDCommand}{C\+D\+Command}} \index{Command@{Command}!echo@{echo}}
+\index{echo@{echo}!Command@{Command}}
+\subsubsection[{\texorpdfstring{echo}{echo}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Echo\+Command} Command\+::echo}\hypertarget{unionCommand_a74de4769cc35dac9a3f7dfd24cb87ad7}{}\label{unionCommand_a74de4769cc35dac9a3f7dfd24cb87ad7}
+Read structure as a {\itshape \hyperlink{structExportCommand}{Export\+Command}} \index{Command@{Command}!eoc@{eoc}}
+\index{eoc@{eoc}!Command@{Command}}
+\subsubsection[{\texorpdfstring{eoc}{eoc}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf E\+O\+C\+Command} Command\+::eoc}\hypertarget{unionCommand_a062a1645e04deb34460595c902a49c44}{}\label{unionCommand_a062a1645e04deb34460595c902a49c44}
+Read structure as a {\itshape E\+O\+C\+Command} \index{Command@{Command}!exit@{exit}}
+\index{exit@{exit}!Command@{Command}}
+\subsubsection[{\texorpdfstring{exit}{exit}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Exit\+Command} Command\+::exit}\hypertarget{unionCommand_ab516bde009e6b06c4b342d7f5bf35ece}{}\label{unionCommand_ab516bde009e6b06c4b342d7f5bf35ece}
+Read structure as a {\itshape Exit\+Command} \index{Command@{Command}!export@{export}}
+\index{export@{export}!Command@{Command}}
+\subsubsection[{\texorpdfstring{export}{export}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Export\+Command} Command\+::export}\hypertarget{unionCommand_a57e7a8eb0763aa7105d3bc6a52e59da3}{}\label{unionCommand_a57e7a8eb0763aa7105d3bc6a52e59da3}
+Read structure as a {\itshape \hyperlink{structExportCommand}{Export\+Command}} \index{Command@{Command}!generic@{generic}}
+\index{generic@{generic}!Command@{Command}}
+\subsubsection[{\texorpdfstring{generic}{generic}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Generic\+Command} Command\+::generic}\hypertarget{unionCommand_a22a7dad0e3935c261a1643c8c5ea46aa}{}\label{unionCommand_a22a7dad0e3935c261a1643c8c5ea46aa}
+Read structure as a {\itshape \hyperlink{structGenericCommand}{Generic\+Command}} \index{Command@{Command}!jobs@{jobs}}
+\index{jobs@{jobs}!Command@{Command}}
+\subsubsection[{\texorpdfstring{jobs}{jobs}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Jobs\+Command} Command\+::jobs}\hypertarget{unionCommand_abeb4905f11baf90a800fe211dd5ecdc9}{}\label{unionCommand_abeb4905f11baf90a800fe211dd5ecdc9}
+Read structure as a {\itshape Jobs\+Command} \index{Command@{Command}!kill@{kill}}
+\index{kill@{kill}!Command@{Command}}
+\subsubsection[{\texorpdfstring{kill}{kill}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Kill\+Command} Command\+::kill}\hypertarget{unionCommand_a19c5261961f2f9a7fcbf9f5379d3f98a}{}\label{unionCommand_a19c5261961f2f9a7fcbf9f5379d3f98a}
+Read structure as a {\itshape \hyperlink{structKillCommand}{Kill\+Command}} \index{Command@{Command}!pwd@{pwd}}
+\index{pwd@{pwd}!Command@{Command}}
+\subsubsection[{\texorpdfstring{pwd}{pwd}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf P\+W\+D\+Command} Command\+::pwd}\hypertarget{unionCommand_a34fc21bb2a7fee2df4d3674b9d8166ff}{}\label{unionCommand_a34fc21bb2a7fee2df4d3674b9d8166ff}
+Read structure as a {\itshape P\+W\+D\+Command} \index{Command@{Command}!simple@{simple}}
+\index{simple@{simple}!Command@{Command}}
+\subsubsection[{\texorpdfstring{simple}{simple}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Simple\+Command} Command\+::simple}\hypertarget{unionCommand_a269da4d9b16689de14a0ec83636b59e8}{}\label{unionCommand_a269da4d9b16689de14a0ec83636b59e8}
+Read structure as a {\itshape \hyperlink{structSimpleCommand}{Simple\+Command}} 
+
+The documentation for this union was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/\hyperlink{command_8h}{command.\+h}\end{DoxyCompactItemize}

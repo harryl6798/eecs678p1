@@ -1,0 +1,114 @@
+\hypertarget{parsing__interface_8h}{}\section{src/parsing/parsing\+\_\+interface.h File Reference}
+\label{parsing__interface_8h}\index{src/parsing/parsing\+\_\+interface.\+h@{src/parsing/parsing\+\_\+interface.\+h}}
+
+
+Defines an interface between c and the parser. This file is also responsible for defining many of the structures used by the parser.  
+
+
+{\ttfamily \#include $<$stdbool.\+h$>$}\\*
+{\ttfamily \#include \char`\"{}command.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}deque.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}quash.\+h\char`\"{}}\\*
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structRedirect}{Redirect}
+\begin{DoxyCompactList}\small\item\em Intermediate parsing structure used to determine the final configuration of the redirects in a command. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \hyperlink{structRedirect}{Redirect} \hyperlink{parsing__interface_8h_a67fb1576f7860fc183192b57b79f91ce}{Redirect}\hypertarget{parsing__interface_8h_a67fb1576f7860fc183192b57b79f91ce}{}\label{parsing__interface_8h_a67fb1576f7860fc183192b57b79f91ce}
+
+\begin{DoxyCompactList}\small\item\em Intermediate parsing structure used to determine the final configuration of the redirects in a command. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{structRedirect}{Redirect} \hyperlink{parsing__interface_8h_a37ef8319c5cfcaa8f21a830f6717fae1}{mk\+\_\+redirect} (char $\ast$in, char $\ast$out, bool append)
+\begin{DoxyCompactList}\small\item\em Creates an intermediate {\itshape \hyperlink{structRedirect}{Redirect}} structure and returns a copy. \end{DoxyCompactList}\item 
+char $\ast$ \hyperlink{parsing__interface_8h_a2bb35c1ceb1849d252bba600ef33a773}{interpret\+\_\+complex\+\_\+string\+\_\+token} (const char $\ast$str)
+\begin{DoxyCompactList}\small\item\em Clean up a string by removing escape symbols and unescaped single quotes. Also expands any environment variables. \end{DoxyCompactList}\item 
+\hyperlink{structCommandHolder}{Command\+Holder} $\ast$ \hyperlink{parsing__interface_8h_a4fd8141abbb16693685c7c1c75938f96}{parse} (\hyperlink{structQuashState}{Quash\+State} $\ast$state)
+\begin{DoxyCompactList}\small\item\em Handles the call to the parser and provides a string equivalent of the {\itshape \hyperlink{unionCommand}{Command}} structure to {\itshape \hyperlink{structQuashState}{Quash\+State}}. \end{DoxyCompactList}\item 
+void \hyperlink{parsing__interface_8h_a659361d40550d9776b6ea7fa69a836ce}{destroy\+\_\+parser} ()\hypertarget{parsing__interface_8h_a659361d40550d9776b6ea7fa69a836ce}{}\label{parsing__interface_8h_a659361d40550d9776b6ea7fa69a836ce}
+
+\begin{DoxyCompactList}\small\item\em Cleanup memory dynamically allocated by the parser. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Defines an interface between c and the parser. This file is also responsible for defining many of the structures used by the parser. 
+
+
+
+\subsection{Function Documentation}
+\index{parsing\+\_\+interface.\+h@{parsing\+\_\+interface.\+h}!interpret\+\_\+complex\+\_\+string\+\_\+token@{interpret\+\_\+complex\+\_\+string\+\_\+token}}
+\index{interpret\+\_\+complex\+\_\+string\+\_\+token@{interpret\+\_\+complex\+\_\+string\+\_\+token}!parsing\+\_\+interface.\+h@{parsing\+\_\+interface.\+h}}
+\subsubsection[{\texorpdfstring{interpret\+\_\+complex\+\_\+string\+\_\+token(const char $\ast$str)}{interpret\_complex\_string\_token(const char *str)}}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ interpret\+\_\+complex\+\_\+string\+\_\+token (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{str}
+\end{DoxyParamCaption}
+)}\hypertarget{parsing__interface_8h_a2bb35c1ceb1849d252bba600ef33a773}{}\label{parsing__interface_8h_a2bb35c1ceb1849d252bba600ef33a773}
+
+
+Clean up a string by removing escape symbols and unescaped single quotes. Also expands any environment variables. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em str} & The string to clean up\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The cleaned up and expanded string allocated on the {\itshape \hyperlink{structMemoryPool}{Memory\+Pool}} 
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{structMemoryPool}{Memory\+Pool} 
+\end{DoxySeeAlso}
+\index{parsing\+\_\+interface.\+h@{parsing\+\_\+interface.\+h}!mk\+\_\+redirect@{mk\+\_\+redirect}}
+\index{mk\+\_\+redirect@{mk\+\_\+redirect}!parsing\+\_\+interface.\+h@{parsing\+\_\+interface.\+h}}
+\subsubsection[{\texorpdfstring{mk\+\_\+redirect(char $\ast$in, char $\ast$out, bool append)}{mk\_redirect(char *in, char *out, bool append)}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Redirect} mk\+\_\+redirect (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{in, }
+\item[{char $\ast$}]{out, }
+\item[{bool}]{append}
+\end{DoxyParamCaption}
+)}\hypertarget{parsing__interface_8h_a37ef8319c5cfcaa8f21a830f6717fae1}{}\label{parsing__interface_8h_a37ef8319c5cfcaa8f21a830f6717fae1}
+
+
+Creates an intermediate {\itshape \hyperlink{structRedirect}{Redirect}} structure and returns a copy. 
+
+Doxygen\+\_\+\+Suppress 
+\begin{DoxyParams}{Parameters}
+{\em in} & A string containing the name of a file to redirect the intput to a command from. This should be N\+U\+LL if there are not any redirections in.\\
+\hline
+{\em out} & A string containing the name of a file to redirect the output of a command to. This should be N\+U\+LL if there are not any redirections out.\\
+\hline
+{\em append} & Should the redirect out append or truncate a file. True if append, false if truncate.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A copy of the constructed \hyperlink{structRedirect}{Redirect} structure
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{structRedirect}{Redirect} 
+\end{DoxySeeAlso}
+\index{parsing\+\_\+interface.\+h@{parsing\+\_\+interface.\+h}!parse@{parse}}
+\index{parse@{parse}!parsing\+\_\+interface.\+h@{parsing\+\_\+interface.\+h}}
+\subsubsection[{\texorpdfstring{parse(\+Quash\+State $\ast$state)}{parse(QuashState *state)}}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Command\+Holder}$\ast$ parse (
+\begin{DoxyParamCaption}
+\item[{{\bf Quash\+State} $\ast$}]{state}
+\end{DoxyParamCaption}
+)}\hypertarget{parsing__interface_8h_a4fd8141abbb16693685c7c1c75938f96}{}\label{parsing__interface_8h_a4fd8141abbb16693685c7c1c75938f96}
+
+
+Handles the call to the parser and provides a string equivalent of the {\itshape \hyperlink{unionCommand}{Command}} structure to {\itshape \hyperlink{structQuashState}{Quash\+State}}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em state} & The state of the quash shell. The parsed\+\_\+str member of \hyperlink{structQuashState}{Quash\+State} is set to the stringified command structure.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A pointer to the parsed command structure
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{structCommandHolder}{Command\+Holder}, \hyperlink{structQuashState}{Quash\+State} 
+\end{DoxySeeAlso}
