@@ -99,12 +99,9 @@ void run_generic(GenericCommand cmd) {
   char* exec = cmd.args[0];
   char** args = cmd.args;
 
-  // TODO: Remove warning silencers
-  (void) exec; // Silence unused variable warning
-  (void) args; // Silence unused variable warning
-
-  // TODO: Implement run generic
-  IMPLEMENT_ME();
+  if((execv(exec, args)) < 0){
+    fprintf(stderr, "\nError execing %s.\n", cmd.args[0]);
+  }
 
   perror("ERROR: Failed to execute program");
 }
@@ -115,11 +112,10 @@ void run_echo(EchoCommand cmd) {
   // string is always NULL) list of strings.
   char** str = cmd.args;
 
-  // TODO: Remove warning silencers
-  (void) str; // Silence unused variable warning
-
-  // TODO: Implement echo
-  IMPLEMENT_ME();
+  int i = 0;
+  while(str[i] != NULL){
+    printf("%s",str[i]);
+  }
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -151,7 +147,7 @@ void run_cd(CDCommand cmd) {
     return;
   }
 
-  // TODO: Change directory
+  chdir(dir);
 
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
@@ -302,6 +298,13 @@ void create_process(CommandHolder holder) {
   bool r_app = holder.flags & REDIRECT_APPEND; // This can only be true if r_out
                                                // is true
 
+  if(r_app && !(r_out)){
+    perror("ERROR: r_app = true and r_out = false");
+  }
+
+  if(p_in || p_out || r_in || r_out || r_app){
+    IMPLEMENT_ME();
+  }
   // TODO: Remove warning silencers
   (void) p_in;  // Silence unused variable warning
   (void) p_out; // Silence unused variable warning
@@ -310,11 +313,10 @@ void create_process(CommandHolder holder) {
   (void) r_app; // Silence unused variable warning
 
   // TODO: Setup pipes, redirects, and new process
-  IMPLEMENT_ME();
 
-  //parent_run_command(holder.cmd); // This should be done in the parent branch of
+  parent_run_command(holder.cmd); // This should be done in the parent branch of
                                   // a fork
-  //child_run_command(holder.cmd); // This should be done in the child branch of a fork
+  child_run_command(holder.cmd); // This should be done in the child branch of a fork
 }
 
 // Run a list of commands
