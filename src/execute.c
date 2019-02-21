@@ -122,7 +122,20 @@ void run_export(ExportCommand cmd) {
   // Write an environment variable
   const char* env_var = cmd.env_var;
   const char* val = cmd.val;
-  setenv(env_var, val, 1);
+
+  // TODO: Remove warning silencers
+  // (void) env_var; // Silence unused variable warning
+  // (void) val;     // Silence unused variable warning
+
+  if(setenv(env_var,val,1) == -1)
+  {
+    perror("ERROR: Unable to set Environment Variable");
+    return;
+  }
+
+  // TODO: Implement export.
+  // HINT: This should be quite simple.
+  //IMPLEMENT_ME();
 }
 
 // Changes the current working directory
@@ -141,7 +154,7 @@ void run_cd(CDCommand cmd) {
   // TODO: Update the PWD environment variable to be the new current working
   // directory and optionally update OLD_PWD environment variable to be the old
   // working directory.
-  IMPLEMENT_ME();
+  //IMPLEMENT_ME();
 }
 
 // Sends a signal to all processes contained in a job
