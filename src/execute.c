@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include "quash.h"
 
+#include <sys/wait.h> //Uses the waitpid() call
+
 // Remove this and all expansion calls to it
 /**
  * @brief Note calls to any function that requires implementation
@@ -28,32 +30,14 @@
 
 // Return a string containing the current working directory.
 char* get_current_directory(bool* should_free) {
-  // TODO: Get the current working directory. This will fix the prompt path.
-  // HINT: This should be pretty simple
-
   char* test = get_current_dir_name();
-  //printf("Current working dir: %s\n", cwd);
-  //IMPLEMENT_ME();
-
-  // Change this to true if necessary
   *should_free = true;
-
-
   return test;
 }
 
 // Returns the value of an environment variable env_var
 const char* lookup_env(const char* env_var) {
-  // TODO: Lookup environment variables. This is required for parser to be able
-  // to interpret variables from the command line and display the prompt
-  // correctly
-  // HINT: This should be pretty simple
-  //IMPLEMENT_ME();
-
   env_var = getenv(env_var);
-  // TODO: Remove warning silencers
-  //(void) env_var; // Silence unused variable warning
-
   return env_var;
 }
 
@@ -62,6 +46,9 @@ void check_jobs_bg_status() {
   // TODO: Check on the statuses of all processes belonging to all background
   // jobs. This function should remove jobs from the jobs queue once all
   // processes belonging to a job have completed.
+
+  //Harry - We'll have to set up the deque in deque.h before we're able to have
+  //        jobs running in the background.
   IMPLEMENT_ME();
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
@@ -99,11 +86,19 @@ void run_generic(GenericCommand cmd) {
   char* exec = cmd.args[0];
   char** args = cmd.args;
 
-  if((execv(exec, args)) < 0){
-    fprintf(stderr, "\nError execing %s.\n", cmd.args[0]);
+  pid_t process_id = fork();
+  if(process_id == 0){
+    if((execvp  (exec, args)) < 0){
+      perror("ERROR: Failed to execute program");
+    }
+    exit(0);
   }
 
-  perror("ERROR: Failed to execute program");
+  int status = 0;
+  if(waitpid(process_id, &status, 0) == -1){
+    printf("\nProcess %s exited with an error.\n", cmd.args[0]);
+  }
+
 }
 
 // Print strings
@@ -115,10 +110,11 @@ void run_echo(EchoCommand cmd) {
   int i = 0;
   while(str[i] != NULL){
     printf("%s",str[i]);
+    i++;
   }
-
   // Flush the buffer before returning
   fflush(stdout);
+
 }
 
 // Sets an environment variable
@@ -126,14 +122,7 @@ void run_export(ExportCommand cmd) {
   // Write an environment variable
   const char* env_var = cmd.env_var;
   const char* val = cmd.val;
-
-  // TODO: Remove warning silencers
-  (void) env_var; // Silence unused variable warning
-  (void) val;     // Silence unused variable warning
-
-  // TODO: Implement export.
-  // HINT: This should be quite simple.
-  IMPLEMENT_ME();
+  setenv(env_var, val, 1);
 }
 
 // Changes the current working directory
