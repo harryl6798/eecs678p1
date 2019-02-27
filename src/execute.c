@@ -320,9 +320,34 @@ void create_process(CommandHolder holder) {
   if(r_app && !(r_out)){
     perror("ERROR: r_app = true and r_out = false");
   }
+  
+  int p[2];
+  int fd_in, fd_out;
+  if(pipe(p) < 0){
+    perror("Could not create pipe");
+  }
 
+  if(p_in){
+
+  }
+
+  if(r_in){
+    int flags = O_RDONLY; 
+    fd_in = open(holder.redirect_in, flags);
+  }
+
+  if(p_out){
+
+  }
+
+  if(r_out && !r_app){ //Overwrite mode for r_out
+
+  }
+  else{ //Append mode for r_out
+
+  }
   if(p_in || p_out || r_in || r_out || r_app){
-    IMPLEMENT_ME();
+    IMPLEMENT_ME(); //redirects use open() for a file descriptor, 
   }
   // TODO: Remove warning silencers
   (void) p_in;  // Silence unused variable warning
