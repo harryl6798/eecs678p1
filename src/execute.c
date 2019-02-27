@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "quash.h"
-
+#include "deque.h"
 #include <sys/wait.h> //Uses the waitpid() call
 
 #include <limits.h> //For PATH_MAX when allocating a char[]
@@ -25,6 +25,25 @@
  */
 #define IMPLEMENT_ME()                                                  \
   fprintf(stderr, "IMPLEMENT ME: %s(line %d): %s()\n", __FILE__, __LINE__, __FUNCTION__)
+
+//Defines the queue for Queue
+IMPLEMENT_DEQUE_STRUCT (pid_queue, pid_t);
+IMPLEMENT_DEQUE (pid_queue, pid_t);
+PROTOTYPE_DEQUE(pid_queue, pid_t)
+
+typedef struct job_t{
+  int job_id;
+  pid_queue pq;
+  char* cmd;
+
+
+}job_t;
+
+IMPLEMENT_DEQUE_STRUCT(pid_job, job_t)
+IMPLEMENT_DEQUE(pid_job, jpb_t)
+PROTOTYPE_DEQUE(pid_job, job_t)
+
+pid_job jobs;
 
 /***************************************************************************
  * Interface Functions
@@ -348,7 +367,7 @@ void create_process(CommandHolder holder) {
   }
   if(p_in || p_out || r_in || r_out || r_app){
     IMPLEMENT_ME(); //redirects use open() for a file descriptor, 
-  }
+}
   // TODO: Remove warning silencers
   (void) p_in;  // Silence unused variable warning
   (void) p_out; // Silence unused variable warning
