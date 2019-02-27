@@ -17,6 +17,8 @@
 
 #include <sys/wait.h> //Uses the waitpid() call
 
+#include <limits.h> //For PATH_MAX when allocating a char[]
+
 // Remove this and all expansion calls to it
 /**
  * @brief Note calls to any function that requires implementation
@@ -109,9 +111,10 @@ void run_echo(EchoCommand cmd) {
 
   int i = 0;
   while(str[i] != NULL){
-    printf("%s",str[i]);
+    printf("%s ",str[i]);
     i++;
   }
+  printf("\n");
   // Flush the buffer before returning
   fflush(stdout);
 
@@ -141,20 +144,31 @@ void run_export(ExportCommand cmd) {
 // Changes the current working directory
 void run_cd(CDCommand cmd) {
   // Get the directory name
-  const char* dir = cmd.dir;
+  const char* new_dir = cmd.dir;
+  const char* new_var = "PWD";
+  const char* old_dir = lookup_env(new_var); //Get the old environment var
+  const char* old_var = "OLD_PWD";
 
   // Check if the directory is valid
-  if (dir == NULL) {
+  if (new_dir == NULL) {
     perror("ERROR: Failed to resolve path");
     return;
   }
 
-  chdir(dir);
+  //Set OLDPWD to the previous dir
+  if(setenv(old_var,old_dir,1) == -1)
+  {
+    perror("ERROR: Unable to change environment var $OLD_PWD");
+    return;
+  }
 
-  // TODO: Update the PWD environment variable to be the new current working
-  // directory and optionally update OLD_PWD environment variable to be the old
-  // working directory.
-  //IMPLEMENT_ME();
+  //Set PWD to the new dir
+  if(setenv(new_var,new_dir,1) == -1)
+  {
+    perror("ERROR: Unable to change environment var $PWD");
+    return;
+  }
+  chdir(new_dir);
 }
 
 // Sends a signal to all processes contained in a job
@@ -173,9 +187,12 @@ void run_kill(KillCommand cmd) {
 
 // Prints the current working directory to stdout
 void run_pwd() {
-  // TODO: Print the current working directory
-  IMPLEMENT_ME();
-
+  char cwd[PATH_MAX];
+   if (getcwd(cwd, PATH_MAX) != NULL) {
+       printf("%s\n", cwd);
+   } else {
+       perror("run_pwd() error");
+   }
   // Flush the buffer before returning
   fflush(stdout);
 }
