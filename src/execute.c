@@ -19,6 +19,10 @@
 
 #include <limits.h> //For PATH_MAX when allocating a char[]
 
+#include <sys/types.h>  //
+#include <fcntl.h>      //    For use with open()
+#include <sys/stat.h>   //
+
 // Remove this and all expansion calls to it
 /**
  * @brief Note calls to any function that requires implementation
@@ -29,7 +33,7 @@
 //Defines the queue for Queue
 IMPLEMENT_DEQUE_STRUCT (pid_queue, pid_t);
 IMPLEMENT_DEQUE (pid_queue, pid_t);
-PROTOTYPE_DEQUE(pid_queue, pid_t)
+PROTOTYPE_DEQUE(pid_queue, pid_t);
 
 typedef struct job_t{
   int job_id;
@@ -39,9 +43,9 @@ typedef struct job_t{
 
 }job_t;
 
-IMPLEMENT_DEQUE_STRUCT(pid_job, job_t)
-IMPLEMENT_DEQUE(pid_job, jpb_t)
-PROTOTYPE_DEQUE(pid_job, job_t)
+IMPLEMENT_DEQUE_STRUCT(pid_job, job_t);
+IMPLEMENT_DEQUE(pid_job, job_t);
+PROTOTYPE_DEQUE(pid_job, job_t);
 
 pid_job jobs;
 
@@ -106,20 +110,10 @@ void run_generic(GenericCommand cmd) {
   // in the array is the executable
   char* exec = cmd.args[0];
   char** args = cmd.args;
-
-  pid_t process_id = fork();
-  if(process_id == 0){
-    if((execvp  (exec, args)) < 0){
-      perror("ERROR: Failed to execute program");
-    }
-    exit(0);
+  if((execvp  (exec, args)) < 0){
+    perror("ERROR: Failed to execute program");
   }
-
   int status = 0;
-  if(waitpid(process_id, &status, 0) == -1){
-    printf("\nProcess %s exited with an error.\n", cmd.args[0]);
-  }
-
 }
 
 // Print strings
@@ -327,7 +321,7 @@ void parent_run_command(Command cmd) {
  *
  * @sa Command CommandHolder
  */
-void create_process(CommandHolder holder) {
+void create_process(CommandHolder holder, job_t& job) {
   // Read the flags field from the parser
   bool p_in  = holder.flags & PIPE_IN;
   bool p_out = holder.flags & PIPE_OUT;
@@ -349,37 +343,42 @@ void create_process(CommandHolder holder) {
   if(p_in){
 
   }
+  else{
+    close(p[0]);
+  }
 
   if(r_in){
     int flags = O_RDONLY; 
     fd_in = open(holder.redirect_in, flags);
+    dup2(fd_in,STDIN_FILENO);
   }
 
   if(p_out){
 
   }
+  else{
+    close(p[1]);
+  }
 
   if(r_out && !r_app){ //Overwrite mode for r_out
-
+    int flags = O_WRONLY; 
+    fd_out = open(holder.redirect_out, flags);
+    dup2(fd_out,STDIN_FILENO);
   }
   else{ //Append mode for r_out
-
+    int flags = O_WRONLY | O_APPEND; 
+    fd_out = open(holder.redirect_out, flags);
+    dup2(fd_out,STDIN_FILENO);
   }
-  if(p_in || p_out || r_in || r_out || r_app){
-    IMPLEMENT_ME(); //redirects use open() for a file descriptor, 
-}
-  // TODO: Remove warning silencers
-  (void) p_in;  // Silence unused variable warning
-  (void) p_out; // Silence unused variable warning
-  (void) r_in;  // Silence unused variable warning
-  (void) r_out; // Silence unused variable warning
-  (void) r_app; // Silence unused variable warning
 
-  // TODO: Setup pipes, redirects, and new process
-
-  parent_run_command(holder.cmd); // This should be done in the parent branch of
-                                  // a fork
-  child_run_command(holder.cmd); // This should be done in the child branch of a fork
+  pid_t pid = fork();
+  if(pid == 0){ //Child
+    child_run_command(holder.cmd);
+  }
+  else{ //Parent
+    // TODO Insert the pid in the process deque for the job here
+    parent_run_command(holder.cmd);
+  }
 }
 
 // Run a list of commands
