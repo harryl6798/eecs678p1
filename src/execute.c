@@ -464,9 +464,17 @@ void run_script(CommandHolder* holders) {
   else {
     // A background job.
     // TODO: Push the new job to the job queue
-    IMPLEMENT_ME();
+    if(!is_empty_pid_job(&jobs))
+    {
+      running_job.job_id = peek_back_pid_job(&jobs).job_id +1;
 
+    }
+    else
+    {
+      running_job.job_id = 1;
+    }
+  push_back_pid_job(&jobs, running_job);
     // TODO: Once jobs are implemented, uncomment and fill the following line
-    // print_job_bg_start(job_id, pid, cmd);
+     print_job_bg_start(running_job.job_id, peek_front_pid_queue(&running_job.pq), running_job.cmd);
   }
 }
