@@ -48,6 +48,7 @@ IMPLEMENT_DEQUE(pid_job, job_t);
 PROTOTYPE_DEQUE(pid_job, job_t);
 
 pid_job jobs;
+bool is_job_run = false;
 
 /***************************************************************************
  * Interface Functions
@@ -213,7 +214,13 @@ void run_pwd() {
 // Prints all background jobs currently in the job list to stdout
 void run_jobs() {
   // TODO: Print background jobs
-  IMPLEMENT_ME();
+  if(!is_empty_job_queue())
+  {
+    for(int i =0; i< length_job_queue(); i++)
+    {
+      pid_t temp_front = pop_front_job_queue();
+    }
+  }
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -321,7 +328,7 @@ void parent_run_command(Command cmd) {
  *
  * @sa Command CommandHolder
  */
-void create_process(CommandHolder holder, job_t& job) {
+void create_process(CommandHolder holder, job_t* job) {
   // Read the flags field from the parser
   bool p_in  = holder.flags & PIPE_IN;
   bool p_out = holder.flags & PIPE_OUT;
@@ -333,7 +340,7 @@ void create_process(CommandHolder holder, job_t& job) {
   if(r_app && !(r_out)){
     perror("ERROR: r_app = true and r_out = false");
   }
-  
+
   int p[2];
   int fd_in, fd_out;
   if(pipe(p) < 0){
@@ -348,7 +355,7 @@ void create_process(CommandHolder holder, job_t& job) {
   }
 
   if(r_in){
-    int flags = O_RDONLY; 
+    int flags = O_RDONLY;
     fd_in = open(holder.redirect_in, flags);
     dup2(fd_in,STDIN_FILENO);
   }
@@ -361,12 +368,12 @@ void create_process(CommandHolder holder, job_t& job) {
   }
 
   if(r_out && !r_app){ //Overwrite mode for r_out
-    int flags = O_WRONLY; 
+    int flags = O_WRONLY;
     fd_out = open(holder.redirect_out, flags);
     dup2(fd_out,STDIN_FILENO);
   }
   else{ //Append mode for r_out
-    int flags = O_WRONLY | O_APPEND; 
+    int flags = O_WRONLY | O_APPEND;
     fd_out = open(holder.redirect_out, flags);
     dup2(fd_out,STDIN_FILENO);
   }
@@ -383,6 +390,13 @@ void create_process(CommandHolder holder, job_t& job) {
 
 // Run a list of commands
 void run_script(CommandHolder* holders) {
+
+  if(!is_job_run)
+  {
+    is_job_run = true;
+    jobs = new_pid_job(1);
+  }
+
   if (holders == NULL)
     return;
 
@@ -395,15 +409,25 @@ void run_script(CommandHolder* holders) {
   }
 
   CommandType type;
+  job_t running_job;
+  running_job.cmd = get_command_string();
+  running_job.pq = new_pid_queue(1);
+
 
   // Run all commands in the `holder` array
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
-    create_process(holders[i]);
+    create_process(holders[i] , &running_job);
 
   if (!(holders[0].flags & BACKGROUND)) {
     // Not a background Job
     // TODO: Wait for all processes under the job to complete
-    IMPLEMENT_ME();
+    while(!is_empty_pid_queue(&running_job.pq))
+    {
+      pid_t front_pid = pop_front_pid_queue(&running_job.pq);
+      int status;
+      waitpid(front_pid, &status, 0);
+    }
+    destroy_pid_queue(&running_job.pq);
   }
   else {
     // A background job.
