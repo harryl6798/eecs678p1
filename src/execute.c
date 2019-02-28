@@ -48,7 +48,7 @@ IMPLEMENT_DEQUE(pid_job, job_t);
 PROTOTYPE_DEQUE(pid_job, job_t);
 
 pid_job jobs;
-bool is_job_run = false;
+bool job_run = false;
 
 /***************************************************************************
  * Interface Functions
@@ -75,7 +75,45 @@ void check_jobs_bg_status() {
 
   //Harry - We'll have to set up the deque in deque.h before we're able to have
   //        jobs running in the background.
-  IMPLEMENT_ME();
+
+  //Trenton - Babe I got this. Also yeah totally agree.
+  if (is_empty_pid_job(&jobs))
+  {
+    return; //No Jobs are currently happening
+  }
+
+  for(int i =0; i < length_pid_job(&jobs); i++)
+  {
+    bool should_delete = true;
+    //Get First JOBS
+    job_t front_value_job = pop_front_pid_job(&jobs);
+    pid_t front_temp_queue = peek_front_pid_queue(&front_value_job.pq);
+    for(int r =0 ; r< length_pid_queue(&front_value_job.pq);r++)
+    {
+
+      pid_t temp_process = pop_front_pid_queue(&front_value_job.pq);
+      int status;
+        if(waitpid(temp_process, &status, WNOHANG) == 0)
+        {
+          push_back_pid_queue(&front_value_job.pq, temp_process);
+          should_delete = false;
+        }
+
+    }
+
+    if(should_delete)
+    {
+      print_job_bg_complete(front_value_job.job_id, front_temp_queue, front_value_job.cmd);
+      destroy_pid_queue(&front_value_job.pq);
+    }
+    else
+    {
+      push_back_pid_job(&jobs, front_value_job);
+    }
+  }
+
+
+  //IMPLEMENT_ME();
 
   // TODO: Once jobs are implemented, uncomment and fill the following line
   // print_job_bg_complete(job_id, pid, cmd);
@@ -114,7 +152,7 @@ void run_generic(GenericCommand cmd) {
   if((execvp  (exec, args)) < 0){
     perror("ERROR: Failed to execute program");
   }
-  int status = 0;
+  //int status = 0;
 }
 
 // Print strings
@@ -190,12 +228,33 @@ void run_kill(KillCommand cmd) {
   int signal = cmd.sig;
   int job_id = cmd.job;
 
-  // TODO: Remove warning silencers
-  (void) signal; // Silence unused variable warning
-  (void) job_id; // Silence unused variable warning
+  int currentLength = length_pid_job(&jobs);
+  for (int i =0; i< currentLength; i++)
+  {
+    job_t temp_front = pop_front_pid_job(&jobs);
+    if(job_id == temp_front.job_id)
+    {
+      //Gotta kll all the Processes
+      int num_proccesses= length_pid_queue(&temp_front.pq);
+      for(int r= 0 ; r< num_proccesses; r++)
+      {
+        pid_t kill_pid = pop_front_pid_queue(&temp_front.pq);
+        kill(kill_pid, signal);
+
+      }
+    }
+    else
+    {
+      push_back_pid_job(&jobs, temp_front); // pushes it back because we need to kill the job
+    }
+  }
+
+  // // TODO: Remove warning silencers
+  // (void) signal; // Silence unused variable warning
+  // (void) job_id; // Silence unused variable warning
 
   // TODO: Kill all processes associated with a background job
-  IMPLEMENT_ME();
+//  IMPLEMENT_ME();
 }
 
 
@@ -214,12 +273,19 @@ void run_pwd() {
 // Prints all background jobs currently in the job list to stdout
 void run_jobs() {
   // TODO: Print background jobs
-  if(!is_empty_job_queue())
+  if(!is_empty_pid_job(&jobs))
   {
-    for(int i =0; i< length_job_queue(); i++)
+    for(int i =0; i< length_pid_job(&jobs); i++)
     {
-      pid_t temp_front = pop_front_job_queue();
+      job_t temp_front = pop_front_pid_job(&jobs);
+      print_job(temp_front.job_id, peek_front_pid_queue(&temp_front.pq), temp_front.cmd);
+      push_back_pid_job(&jobs, temp_front );
     }
+  }
+  else
+  {
+    perror("Could not print the jobs");
+    return;
   }
 
   // Flush the buffer before returning
@@ -391,9 +457,9 @@ void create_process(CommandHolder holder, job_t* job) {
 // Run a list of commands
 void run_script(CommandHolder* holders) {
 
-  if(!is_job_run)
+  if(!job_run)
   {
-    is_job_run = true;
+    job_run = true;
     jobs = new_pid_job(1);
   }
 
