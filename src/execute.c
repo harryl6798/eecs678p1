@@ -447,11 +447,12 @@ void create_process(CommandHolder holder, job_t* job) {
   pid_t pid = fork();
   if(pid == 0){ //Child
     child_run_command(holder.cmd);
+    exit(0);
   }
   else{ //Parent
     // TODO Insert the pid in the process deque for the job here
     parent_run_command(holder.cmd);
-  }
+    }
 }
 
 // Run a list of commands
