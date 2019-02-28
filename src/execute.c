@@ -69,14 +69,6 @@ const char* lookup_env(const char* env_var) {
 
 // Check the status of background jobs
 void check_jobs_bg_status() {
-  // TODO: Check on the statuses of all processes belonging to all background
-  // jobs. This function should remove jobs from the jobs queue once all
-  // processes belonging to a job have completed.
-
-  //Harry - We'll have to set up the deque in deque.h before we're able to have
-  //        jobs running in the background.
-
-  //Trenton - Babe I got this. Also yeah totally agree.
   if (is_empty_pid_job(&jobs))
   {
     return; //No Jobs are currently happening
@@ -93,10 +85,10 @@ void check_jobs_bg_status() {
 
       pid_t temp_process = pop_front_pid_queue(&front_value_job.pq);
       int status;
-        if(waitpid(temp_process, &status, WNOHANG) == 0)
+        if(waitpid(temp_process, &status, WNOHANG) == 0) //Iterate through all processes
         {
           push_back_pid_queue(&front_value_job.pq, temp_process);
-          should_delete = false;
+          should_delete = false; //If any processes are running, don't delete the job
         }
 
     }
@@ -105,18 +97,13 @@ void check_jobs_bg_status() {
     {
       print_job_bg_complete(front_value_job.job_id, front_temp_queue, front_value_job.cmd);
       destroy_pid_queue(&front_value_job.pq);
+      //TODO: We may have to delete the char* cmd of front_value_job for no leak here
     }
-    else
+    else //If we don't delete, add the job back to the jobs dequeue
     {
       push_back_pid_job(&jobs, front_value_job);
     }
   }
-
-
-  //IMPLEMENT_ME();
-
-  // TODO: Once jobs are implemented, uncomment and fill the following line
-  // print_job_bg_complete(job_id, pid, cmd);
 }
 
 // Prints the job id number, the process id of the first process belonging to
@@ -152,7 +139,6 @@ void run_generic(GenericCommand cmd) {
   if((execvp  (exec, args)) < 0){
     perror("ERROR: Failed to execute program");
   }
-  //int status = 0;
 }
 
 // Print strings
@@ -177,20 +163,11 @@ void run_export(ExportCommand cmd) {
   // Write an environment variable
   const char* env_var = cmd.env_var;
   const char* val = cmd.val;
-
-  // TODO: Remove warning silencers
-  // (void) env_var; // Silence unused variable warning
-  // (void) val;     // Silence unused variable warning
-
   if(setenv(env_var,val,1) == -1)
   {
     perror("ERROR: Unable to set Environment Variable");
     return;
   }
-
-  // TODO: Implement export.
-  // HINT: This should be quite simple.
-  //IMPLEMENT_ME();
 }
 
 // Changes the current working directory
@@ -200,20 +177,17 @@ void run_cd(CDCommand cmd) {
   const char* new_var = "PWD";
   const char* old_dir = lookup_env(new_var); //Get the old environment var
   const char* old_var = "OLD_PWD";
-
   // Check if the directory is valid
   if (new_dir == NULL) {
     perror("ERROR: Failed to resolve path");
     return;
   }
-
   //Set OLDPWD to the previous dir
   if(setenv(old_var,old_dir,1) == -1)
   {
     perror("ERROR: Unable to change environment var $OLD_PWD");
     return;
   }
-
   //Set PWD to the new dir
   if(setenv(new_var,new_dir,1) == -1)
   {
@@ -234,7 +208,7 @@ void run_kill(KillCommand cmd) {
     job_t temp_front = pop_front_pid_job(&jobs);
     if(job_id == temp_front.job_id)
     {
-      //Gotta kll all the Processes
+      //Gotta kill all the Processes
       int num_proccesses= length_pid_queue(&temp_front.pq);
       for(int r= 0 ; r< num_proccesses; r++)
       {
@@ -248,13 +222,6 @@ void run_kill(KillCommand cmd) {
       push_back_pid_job(&jobs, temp_front); // pushes it back because we need to kill the job
     }
   }
-
-  // // TODO: Remove warning silencers
-  // (void) signal; // Silence unused variable warning
-  // (void) job_id; // Silence unused variable warning
-
-  // TODO: Kill all processes associated with a background job
-//  IMPLEMENT_ME();
 }
 
 
@@ -438,7 +405,7 @@ void create_process(CommandHolder holder, job_t* job) {
     fd_out = open(holder.redirect_out, flags);
     dup2(fd_out,STDIN_FILENO);
   }
-  else{ //Append mode for r_out
+  else if(r_out && r_app) { //Append mode for r_out
     int flags = O_WRONLY | O_APPEND;
     fd_out = open(holder.redirect_out, flags);
     dup2(fd_out,STDIN_FILENO);
@@ -450,7 +417,7 @@ void create_process(CommandHolder holder, job_t* job) {
     exit(0);
   }
   else{ //Parent
-    // TODO Insert the pid in the process deque for the job here
+    push_front_pid_queue(&job->pq,pid); //TODO: should this be push_back?
     parent_run_command(holder.cmd);
     }
 }
@@ -458,7 +425,7 @@ void create_process(CommandHolder holder, job_t* job) {
 // Run a list of commands
 void run_script(CommandHolder* holders) {
 
-  if(!job_run)
+  if(!job_run) //Inits the job deque if this is the first run script
   {
     job_run = true;
     jobs = new_pid_job(1);
@@ -485,15 +452,13 @@ void run_script(CommandHolder* holders) {
   for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
     create_process(holders[i] , &running_job);
 
-  if (!(holders[0].flags & BACKGROUND)) {
-    // Not a background Job
-    // TODO: Wait for all processes under the job to complete
-    while(!is_empty_pid_queue(&running_job.pq))
-    {
+  if (!(holders[0].flags & BACKGROUND)) { // Not a background Job
+    while(!is_empty_pid_queue(&running_job.pq)){
       pid_t front_pid = pop_front_pid_queue(&running_job.pq);
       int status;
       waitpid(front_pid, &status, 0);
     }
+    free(running_job.cmd);  //Have to use this to delete usage of get_command_string
     destroy_pid_queue(&running_job.pq);
   }
   else {
