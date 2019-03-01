@@ -104,8 +104,8 @@ void check_jobs_bg_status() {
     {
       print_job_bg_complete(front_value_job.job_id, front_temp_queue, front_value_job.cmd);
       free(front_value_job.cmd);
+      destroy_pid_queue(&front_value_job. pq);
 
-      //destroy_pid_job(&front_value_job);
       //TODO: We may have to delete the char* cmd of front_value_job for no leak here
     }
     else //If we don't delete, add the job back to the jobs dequeue
@@ -415,7 +415,7 @@ void create_process(CommandHolder holder, job_t* job, int* pipes, int fd_in, int
     }
     if(r_in){
       int flags = O_RDONLY;
-      fd_in = open(holder.redirect_in, flags);
+      fd_in = open(holder.redirect_in, flags,0666);
       dup2(fd_in,STDIN_FILENO);
     }
 
