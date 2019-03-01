@@ -49,6 +49,7 @@ PROTOTYPE_DEQUE(pid_job, job_t);
 
 pid_job jobs;
 bool job_run = false;
+static int id_num = 1;
 
 /***************************************************************************
  * Interface Functions
@@ -63,11 +64,10 @@ char* get_current_directory(bool* should_free) {
 
 // Returns the value of an environment variable env_var
 const char* lookup_env(const char* env_var) {
-  env_var = getenv(env_var);
-  return env_var;
+    return getenv(env_var);
+
 }
 
-    bool should_delete = false;
 
 // Check the status of background jobs
 void check_jobs_bg_status() {
@@ -75,38 +75,44 @@ void check_jobs_bg_status() {
   {
     return; //No Jobs are currently happening
   }
+  bool should_delete = false;
 
   for(int i =0; i < length_pid_job(&jobs); i++)
   {
+
     //Get First JOBS
     job_t front_value_job = pop_front_pid_job(&jobs);
-    pid_t front_temp_queue;
+
+    pid_t ps = peek_front_pid_queue(&front_value_job.pq);
     for(int r =0 ; r< length_pid_queue(&front_value_job.pq);r++)
     {
 
-      front_temp_queue = pop_front_pid_queue(&front_value_job.pq);
+      pid_t front_temp_queue = pop_front_pid_queue(&front_value_job.pq);
       int status;
         if(waitpid(front_temp_queue, &status, WNOHANG) == 0) //Iterate through all processes
         {
           push_back_pid_queue(&front_value_job.pq, front_temp_queue);
+
           should_delete = false; //If any processes are running, don't delete the job
         }
         else
         {
           should_delete = true;
-        }
-        
 
+        }
     }
 
-    if(should_delete)
+  if(is_empty_pid_queue(&front_value_job.pq))
     {
-      print_job_bg_complete(front_value_job.job_id, front_temp_queue, front_value_job.cmd);
+      print_job_bg_complete(front_value_job.job_id, ps, front_value_job.cmd);
+      free(front_value_job.cmd);
       destroy_pid_queue(&front_value_job.pq);
       //TODO: We may have to delete the char* cmd of front_value_job for no leak here
     }
     else //If we don't delete, add the job back to the jobs dequeue
     {
+      //print_job_bg_complete(front_value_job.job_id, front_temp_queue, front_value_job.cmd);
+
       push_back_pid_job(&jobs, front_value_job);
     }
   }
@@ -214,19 +220,21 @@ void run_kill(KillCommand cmd) {
     job_t temp_front = pop_front_pid_job(&jobs);
     if(job_id == temp_front.job_id)
     {
+
       //Gotta kill all the Processes
-      int num_proccesses= length_pid_queue(&temp_front.pq);
-      for(int r= 0 ; r< num_proccesses; r++)
+      int num_proccesses = length_pid_queue(&temp_front.pq);
+      while(!is_empty_pid_queue(&temp_front.pq))
       {
         pid_t kill_pid = pop_front_pid_queue(&temp_front.pq);
-        kill(kill_pid, signal);
 
+        kill(kill_pid, signal);
+        push_back_pid_queue(&temp_front.pq, kill_pid);
       }
+
     }
-    else
-    {
+
       push_back_pid_job(&jobs, temp_front); // pushes it back because we need to kill the job
-    }
+
   }
 }
 
@@ -246,20 +254,15 @@ void run_pwd() {
 // Prints all background jobs currently in the job list to stdout
 void run_jobs() {
   // TODO: Print background jobs
-  if(!is_empty_pid_job(&jobs))
-  {
+
     for(int i =0; i< length_pid_job(&jobs); i++)
     {
       job_t temp_front = pop_front_pid_job(&jobs);
       print_job(temp_front.job_id, peek_front_pid_queue(&temp_front.pq), temp_front.cmd);
       push_back_pid_job(&jobs, temp_front );
     }
-  }
-  else
-  {
-    perror("Could not print the jobs");
-    return;
-  }
+
+
 
   // Flush the buffer before returning
   fflush(stdout);
@@ -450,6 +453,7 @@ void run_script(CommandHolder* holders) {
 
   CommandType type;
   job_t running_job;
+  running_job.job_id = id_num;
   running_job.cmd = get_command_string();
   running_job.pq = new_pid_queue(1);
 
@@ -464,23 +468,18 @@ void run_script(CommandHolder* holders) {
       int status;
       waitpid(front_pid, &status, 0);
     }
-    free(running_job.cmd);  //Have to use this to delete usage of get_command_string
+      //Have to use this to delete usage of get_command_string
     destroy_pid_queue(&running_job.pq);
+    free(running_job.cmd);
   }
   else {
     // A background job.
-    // TODO: Push the new job to the job queue
-    if(!is_empty_pid_job(&jobs))
-    {
-      running_job.job_id = peek_back_pid_job(&jobs).job_id +1;
 
-    }
-    else
-    {
-      running_job.job_id = 1;
-    }
+      id_num++;
+//test
+
   push_back_pid_job(&jobs, running_job);
     // TODO: Once jobs are implemented, uncomment and fill the following line
-     print_job_bg_start(running_job.job_id, peek_front_pid_queue(&running_job.pq), running_job.cmd);
+     print_job_bg_start(running_job.job_id, peek_back_pid_queue(&running_job.pq), running_job.cmd);
   }
 }
