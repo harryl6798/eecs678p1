@@ -1,0 +1,29 @@
+==27450== Memcheck, a memory error detector
+==27450== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==27450== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==27450== Command: /home/trpotter72/Documents/Code/eecs678p1/quash
+==27450== 
+==27450== 
+==27450== Process terminating with default action of signal 2 (SIGINT)
+==27450==    at 0x401CCDB: open (open64.c:47)
+==27450==    by 0x4005C06: open_verify.constprop.7 (dl-load.c:1668)
+==27450==    by 0x4008FA8: _dl_map_object (dl-load.c:2327)
+==27450==    by 0x4001304: map_doit (rtld.c:591)
+==27450==    by 0x401BC6A: _dl_catch_exception (dl-error-skeleton.c:196)
+==27450==    by 0x401BCDE: _dl_catch_error (dl-error-skeleton.c:215)
+==27450==    by 0x4002567: do_preload (rtld.c:762)
+==27450==    by 0x4002567: handle_ld_preload (rtld.c:860)
+==27450==    by 0x4003E34: dl_main (rtld.c:1618)
+==27450==    by 0x401ADCF: _dl_sysdep_start (dl-sysdep.c:253)
+==27450==    by 0x4002127: _dl_start_final (rtld.c:414)
+==27450==    by 0x4002127: _dl_start (rtld.c:521)
+==27450==    by 0x4001097: ??? (in /lib/x86_64-linux-gnu/ld-2.27.so)
+==27450== 
+==27450== HEAP SUMMARY:
+==27450==     in use at exit: 0 bytes in 0 blocks
+==27450==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==27450== 
+==27450== All heap blocks were freed -- no leaks are possible
+==27450== 
+==27450== For counts of detected and suppressed errors, rerun with: -v
+==27450== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
