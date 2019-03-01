@@ -67,10 +67,13 @@ const char* lookup_env(const char* env_var) {
   return env_var;
 }
 
-    bool should_delete = false;
-
 // Check the status of background jobs
 void check_jobs_bg_status() {
+  if(!job_run) //Inits the job deque if this is the first run script
+  {
+    job_run = true;
+    jobs = new_pid_job(1);
+  }
   if (is_empty_pid_job(&jobs))
   {
     return; //No Jobs are currently happening
@@ -78,24 +81,20 @@ void check_jobs_bg_status() {
 
   for(int i =0; i < length_pid_job(&jobs); i++)
   {
+    bool should_delete = true;
     //Get First JOBS
     job_t front_value_job = pop_front_pid_job(&jobs);
-    pid_t front_temp_queue;
+    pid_t front_temp_queue = peek_front_pid_queue(&front_value_job.pq);
     for(int r =0 ; r< length_pid_queue(&front_value_job.pq);r++)
     {
 
-      front_temp_queue = pop_front_pid_queue(&front_value_job.pq);
+      pid_t temp_process = pop_front_pid_queue(&front_value_job.pq);
       int status;
-        if(waitpid(front_temp_queue, &status, WNOHANG) == 0) //Iterate through all processes
+        if(waitpid(temp_process, &status, WNOHANG) == 0) //Iterate through all processes
         {
-          push_back_pid_queue(&front_value_job.pq, front_temp_queue);
+          push_back_pid_queue(&front_value_job.pq, temp_process);
           should_delete = false; //If any processes are running, don't delete the job
         }
-        else
-        {
-          should_delete = true;
-        }
-        
 
     }
 
@@ -367,7 +366,7 @@ void parent_run_command(Command cmd) {
  *
  * @sa Command CommandHolder
  */
-void create_process(CommandHolder holder, job_t* job) {
+void create_process(CommandHolder holder, job_t* job, int* pipes, int fd_in, int fd_out, int count) {
   // Read the flags field from the parser
   bool p_in  = holder.flags & PIPE_IN;
   bool p_out = holder.flags & PIPE_OUT;
@@ -379,53 +378,56 @@ void create_process(CommandHolder holder, job_t* job) {
   if(r_app && !(r_out)){
     perror("ERROR: r_app = true and r_out = false");
   }
-
-  int p[2];
-  int fd_in, fd_out;
-  if(pipe(p) < 0){
-    perror("Could not create pipe");
-  }
-
-  if(p_in){
-
-  }
-  else{
-    close(p[0]);
-  }
-
-  if(r_in){
-    int flags = O_RDONLY;
-    fd_in = open(holder.redirect_in, flags);
-    dup2(fd_in,STDIN_FILENO);
-  }
-
-  if(p_out){
-
-  }
-  else{
-    close(p[1]);
-  }
-
-  if(r_out && !r_app){ //Overwrite mode for r_out
-    int flags = O_WRONLY;
-    fd_out = open(holder.redirect_out, flags);
-    dup2(fd_out,STDIN_FILENO);
-  }
-  else if(r_out && r_app) { //Append mode for r_out
-    int flags = O_WRONLY | O_APPEND;
-    fd_out = open(holder.redirect_out, flags);
-    dup2(fd_out,STDIN_FILENO);
-  }
-
+  fprintf(stdout, "p_in: %d  p_out: %d  r_in: %d  r_out: %d  r_app: %d\n",p_in,p_out,r_in,r_out,r_app);
+  fprintf(stdout, "fd_in: %d\tfd_out: %d\n", fd_in, fd_out);
+  fflush(stdout);
   pid_t pid = fork();
-  if(pid == 0){ //Child
-    child_run_command(holder.cmd);
-    exit(0);
+  if(pid == 0){ //Child - close
+    fprintf(stdout, "Entering child\n");
+    for(int i = 0; i < count;i++){
+      if(i != fd_in && i != fd_out){ //Close the pipe if it's not used
+        fprintf(stdout, "Closing pipe: %d child\n",pipes[i]);
+        if(close(pipes[i]) < 0){
+          perror("Failed to closed pipe in child process");
+        }
+      }
+    }
+    fflush(stdout);
+    if(p_in){
+      fprintf(stdout, "%d to STDIN, child\n", pipes[fd_in]);
+      if(dup2(pipes[fd_in],STDIN_FILENO) < 0){
+        perror("Could not duplicate pipe");
+      }
+    }
+    if(p_out){
+      fprintf(stdout, "%d to STDOUT, child\n", pipes[fd_out]);
+      if(dup2(pipes[fd_out],STDOUT_FILENO) < 0){
+        perror("Couldn't create duplicate pipe");
+      }
+    }
+    if(r_in){
+      int flags = O_RDONLY;
+      fd_in = open(holder.redirect_in, flags);
+      dup2(pipes[fd_in],STDIN_FILENO);
+    }
+
+    if(r_out && !r_app){ //Overwrite mode for r_out
+      int flags = O_WRONLY;
+      dup2( open(holder.redirect_out, flags) ,STDOUT_FILENO);
+    }
+    else if(r_out && r_app) { //Append mode for r_out
+      int flags = O_WRONLY | O_APPEND;
+      dup2( open(holder.redirect_out, flags), STDOUT_FILENO);
+    }
+    child_run_command(holder.cmd);  //Pipes would be closed here after the execv
+    exit(0); 
   }
   else{ //Parent
     push_front_pid_queue(&job->pq,pid); //TODO: should this be push_back?
+    fprintf(stdout, "Entering parent\n");
+    fflush(stdout);
     parent_run_command(holder.cmd);
-    }
+  }
 }
 
 // Run a list of commands
@@ -453,34 +455,69 @@ void run_script(CommandHolder* holders) {
   running_job.cmd = get_command_string();
   running_job.pq = new_pid_queue(1);
 
+  int processes = 0;//Count the number of processes
+  for (;(type = get_command_holder_type(holders[processes])) != EOC; ++processes){
 
+  }
+
+  int pipes[(processes-1) * 2];
+  for(int i = 0; i < processes-1; i++){//init pipes
+    pipe(pipes + (i*2) );
+  }
+  for(int i = 0; i < (processes-1) * 2; i++){
+    fprintf(stdout, "Pipe %d: %d\n",i, pipes[i]);
+  }
+
+  int fd_in, fd_out; // -1 for stdin or stdout
   // Run all commands in the `holder` array
-  for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; ++i)
-    create_process(holders[i] , &running_job);
+  for (int i = 0; (type = get_command_holder_type(holders[i])) != EOC; i++){
+    if(i == 0){ //first process
+      fd_in = -1;
+    }
+    else{
+      fd_in = (i-1)*2;
+    }
+    if(i == processes - 1){ // last process
+      fd_out = -1;
+    }
+    else{
+      fd_out = i*2 + 1;
+    }
+    /*
+    * Process:  0 1 2 3 ...  n
+    * fd_in:   -1 0 2 4 ...  2(n-1)
+    * fd_out:   1 3 5 7 ... -1
+    */
+    fprintf(stdout, "\nCreate process %d with fd_in:%d \t fd_out:%d \n", i, fd_in, fd_out);
+    fflush(stdout);
+    create_process(holders[i] , &running_job, pipes, fd_in, fd_out, processes-1);
+  }
+
 
   if (!(holders[0].flags & BACKGROUND)) { // Not a background Job
     while(!is_empty_pid_queue(&running_job.pq)){
       pid_t front_pid = pop_front_pid_queue(&running_job.pq);
       int status;
       waitpid(front_pid, &status, 0);
+      fprintf(stdout, "PROCESSES FINISHED");
     }
     free(running_job.cmd);  //Have to use this to delete usage of get_command_string
     destroy_pid_queue(&running_job.pq);
   }
+
   else {
     // A background job.
     // TODO: Push the new job to the job queue
-    if(!is_empty_pid_job(&jobs))
-    {
-      running_job.job_id = peek_back_pid_job(&jobs).job_id +1;
+    IMPLEMENT_ME();
 
-    }
-    else
-    {
-      running_job.job_id = 1;
-    }
-  push_back_pid_job(&jobs, running_job);
     // TODO: Once jobs are implemented, uncomment and fill the following line
-     print_job_bg_start(running_job.job_id, peek_front_pid_queue(&running_job.pq), running_job.cmd);
+    // print_job_bg_start(job_id, pid, cmd);
   }
+  for(int i = 0; i < processes -1; i++){
+    fprintf(stdout, "Closing pipe: %d parent\n",pipes[i]);
+    if(close(pipes[i]) < 0){
+      perror("Failed to clse pipe in parent process");
+    }
+  }
+  fflush(stdout);
 }
