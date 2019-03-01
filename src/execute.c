@@ -67,6 +67,8 @@ const char* lookup_env(const char* env_var) {
   return env_var;
 }
 
+    bool should_delete = false;
+
 // Check the status of background jobs
 void check_jobs_bg_status() {
   if (is_empty_pid_job(&jobs))
@@ -76,20 +78,24 @@ void check_jobs_bg_status() {
 
   for(int i =0; i < length_pid_job(&jobs); i++)
   {
-    bool should_delete = true;
     //Get First JOBS
     job_t front_value_job = pop_front_pid_job(&jobs);
-    pid_t front_temp_queue = peek_front_pid_queue(&front_value_job.pq);
+    pid_t front_temp_queue;
     for(int r =0 ; r< length_pid_queue(&front_value_job.pq);r++)
     {
 
-      pid_t temp_process = pop_front_pid_queue(&front_value_job.pq);
+      front_temp_queue = pop_front_pid_queue(&front_value_job.pq);
       int status;
-        if(waitpid(temp_process, &status, WNOHANG) == 0) //Iterate through all processes
+        if(waitpid(front_temp_queue, &status, WNOHANG) == 0) //Iterate through all processes
         {
-          push_back_pid_queue(&front_value_job.pq, temp_process);
+          push_back_pid_queue(&front_value_job.pq, front_temp_queue);
           should_delete = false; //If any processes are running, don't delete the job
         }
+        else
+        {
+          should_delete = true;
+        }
+        
 
     }
 
