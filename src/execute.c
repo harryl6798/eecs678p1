@@ -246,13 +246,13 @@ void run_kill(KillCommand cmd) {
 
 // Prints the current working directory to stdout
 void run_pwd() {
-  char cwd[PATH_MAX];
-   if (getcwd(cwd, PATH_MAX) != NULL) {
-       printf("%s\n", cwd);
-   } else {
-       perror("run_pwd() error");
-   }
-  // Flush the buffer before returning
+  bool should_free;
+  char* pwd = get_current_directory(&should_free);
+
+  printf("%s",pwd);
+
+  free(pwd);
+
   fflush(stdout);
 }
 
@@ -415,20 +415,20 @@ void create_process(CommandHolder holder, job_t* job, int* pipes, int fd_in, int
     }
     if(r_in){
       int flags = O_RDONLY;
-      fd_in = open(holder.redirect_in, flags,0666);
+      fd_in = open(holder.redirect_in, flags,0777);
       dup2(fd_in,STDIN_FILENO);
     }
 
     if(r_out && !r_app){ //Overwrite mode for r_out
       int flags = O_RDWR | O_CREAT | O_TRUNC;
-      int file_out = open(holder.redirect_out, flags, 0666);
+      int file_out = open(holder.redirect_out, flags, 0777);
       if(dup2( file_out ,STDOUT_FILENO) < 0){
         perror("Failed to open file in append mode");
       }
     }
     else if(r_out && r_app) { //Append mode for r_out
       int flags = (O_RDWR | O_APPEND | O_CREAT);
-      int file_out = open(holder.redirect_out, flags, 0666);
+      int file_out = open(holder.redirect_out, flags, 0777);
       if(dup2( file_out, STDOUT_FILENO) < 0){
         perror("Failed to open file in append mode");
       }
