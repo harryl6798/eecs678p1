@@ -420,14 +420,14 @@ void create_process(CommandHolder holder, job_t* job, int* pipes, int fd_in, int
     }
 
     if(r_out && !r_app){ //Overwrite mode for r_out
-      int flags = O_RDWR | O_CREAT;
+      int flags = O_RDWR | O_CREAT | O_TRUNC;
       int file_out = open(holder.redirect_out, flags, 0666);
       if(dup2( file_out ,STDOUT_FILENO) < 0){
         perror("Failed to open file in append mode");
       }
     }
     else if(r_out && r_app) { //Append mode for r_out
-      int flags = O_RDWR | O_APPEND | O_CREAT;
+      int flags = (O_RDWR | O_APPEND | O_CREAT);
       int file_out = open(holder.redirect_out, flags, 0666);
       if(dup2( file_out, STDOUT_FILENO) < 0){
         perror("Failed to open file in append mode");
