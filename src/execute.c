@@ -226,20 +226,23 @@ void run_kill(KillCommand cmd) {
     if(job_id == temp_front.job_id)
     {
 
+      pid_t kill_pid;
+
       //Gotta kill all the Processes
       //int num_proccesses = length_pid_queue(&temp_front.pq);
       while(!is_empty_pid_queue(&temp_front.pq))
       {
-        pid_t kill_pid = pop_front_pid_queue(&temp_front.pq);
 
+        kill_pid = pop_front_pid_queue(&temp_front.pq);
         kill(kill_pid, signal);
-        push_back_pid_queue(&temp_front.pq, kill_pid);
+        // push_back_pid_queue(&temp_front.pq, kill_pid);
       }
+      print_job_bg_complete(temp_front.job_id,kill_pid, temp_front.cmd);
 
     }
-
+    else{
       push_back_pid_job(&jobs, temp_front); // pushes it back because we need to kill the job
-
+    }
   }
 }
 
@@ -249,7 +252,7 @@ void run_pwd() {
   bool should_free;
   char* pwd = get_current_directory(&should_free);
 
-  printf("%s",pwd);
+  printf("%s\n",pwd);
 
   free(pwd);
 
