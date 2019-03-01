@@ -80,14 +80,15 @@ void check_jobs_bg_status() {
     return; //No Jobs are currently happening
   }
   // bool should_delete = false;
-
-  for(int i =0; i < length_pid_job(&jobs); i++)
+  int theLength = length_pid_job(&jobs);
+  for(int i =0; i < theLength; i++)
   {
     //bool should_delete = true;
     //Get First JOBS
     job_t front_value_job = pop_front_pid_job(&jobs);
     pid_t front_temp_queue = peek_front_pid_queue(&front_value_job.pq);
-    for(int r =0 ; r< length_pid_queue(&front_value_job.pq);r++)
+    int theLength2 = length_pid_queue(&front_value_job.pq);
+    for(int r =0 ; r< theLength2; r++)
     {
 
       pid_t temp_process = pop_front_pid_queue(&front_value_job.pq);
@@ -103,7 +104,8 @@ void check_jobs_bg_status() {
     {
       print_job_bg_complete(front_value_job.job_id, front_temp_queue, front_value_job.cmd);
       free(front_value_job.cmd);
-      destroy_pid_queue(&front_value_job.pq);
+
+      //destroy_pid_job(&front_value_job);
       //TODO: We may have to delete the char* cmd of front_value_job for no leak here
     }
     else //If we don't delete, add the job back to the jobs dequeue
@@ -112,7 +114,13 @@ void check_jobs_bg_status() {
 
       push_back_pid_job(&jobs, front_value_job);
     }
+
   }
+  if(is_empty_pid_job(&jobs))
+  {
+    destroy_pid_job(&jobs);
+  }
+
 }
 
 // Prints the job id number, the process id of the first process belonging to
@@ -426,7 +434,7 @@ void create_process(CommandHolder holder, job_t* job, int* pipes, int fd_in, int
       }
     }
     child_run_command(holder.cmd);  //Pipes would be closed here after the execv
-    exit(0); 
+    exit(0);
   }
   else{ //Parent
     push_front_pid_queue(&job->pq,pid); //TODO: should this be push_back?
@@ -499,9 +507,9 @@ void run_script(CommandHolder* holders) {
     fflush(stdout);
     create_process(holders[i] , &running_job, pipes, fd_in, fd_out, (processes-1)*2);
   }
-  // 
+  //
   // Close all the pipes in the parent process
-  //   
+  //
   for(int i = 0; i < (processes-1) * 2; i++){
     //fprintf(stdout, "Closing pipe: %d parent\n",pipes[i]);
     if(close(pipes[i]) < 0){
